@@ -25,3 +25,15 @@ y_test <- read.table("UCI HAR Dataset/test/y_test.txt")
 
 activity_labels <- read.table("UCI HAR Dataset/activity_labels.txt")
 features <- read.table("UCI HAR Dataset/features.txt") 
+
+## 1. Merge the training and the test sets to create one data set ##
+xComData <- rbind(x_train, x_test)
+yComData <- rbind(y_train, y_test)
+subjectComData <- rbind(subject_train, subject_test)
+mergeData <- cbind(subjectComData, yComData, xComData)
+
+
+## 2. Extract only the measurements on the mean and standard deviation for each measurement
+mean_std <- grepl("mean\\(\\)|std\\(\\)", features[, 2])
+meanStdData <- mergeData[, mean_std]
+

@@ -28,12 +28,33 @@ features <- read.table("UCI HAR Dataset/features.txt")
 
 ## 1. Merge the training and the test sets to create one data set ##
 xComData <- rbind(x_train, x_test)
-yComData <- rbind(y_train, y_test)
-subjectComData <- rbind(subject_train, subject_test)
-mergeData <- cbind(subjectComData, yComData, xComData)
+
 
 
 ## 2. Extract only the measurements on the mean and standard deviation for each measurement
 mean_std <- grepl("mean\\(\\)|std\\(\\)", features[, 2])
 meanStdData <- mergeData[, mean_std]
 
+
+## 4. Appropriately labels the data set with descriptive variable names.cleanNames <- sapply(features[, 2], function(x) {gsub("[()]", "",x)})
+cleanNames <- sapply(features[, 2], function(x) {gsub("[()]", "",x)})
+names(meanStdData) <- cleanNames[mean_std]
+
+## Combine All Data ##
+yComData <- rbind(y_train, y_test)
+names(yComData) <- "activity"
+subjectComData <- rbind(subject_train, subject_test)
+names(subjectComData) <- "subject"
+mergeData <- cbind(subjectComData, yComData, xComData)
+
+## 3. Uses descriptive activity names to name the activities in the data set ##
+mergeData$activity <- activity_labels$V2[match(mergeData$activity,activity_labels$V1)]
+
+
+## 5.  creates a second, independent tidy data set with the average of each variable for each activity and each subject. ##
+install.packages("reshape2")
+library("reshape2")
+firstData <- melt(mergeData,(id.vars=c("subject","activity")))
+secondDataSet <- dcast(firstData, subject + activity ~ variable, mean)
+names(secondDataSet)[-c(1:2)] <- paste("[mean of]" , names(secondDataSet)[-c(1:2)] )
+write.table(secondDataSet, "tidy_data.txt", sep = ",")
